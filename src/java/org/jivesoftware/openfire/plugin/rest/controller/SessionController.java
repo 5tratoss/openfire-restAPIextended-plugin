@@ -8,6 +8,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 import org.jivesoftware.openfire.SessionManager;
+import org.jivesoftware.openfire.SessionResultFilter;
 import org.jivesoftware.openfire.plugin.rest.entity.SessionEntities;
 import org.jivesoftware.openfire.plugin.rest.entity.SessionEntity;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
@@ -44,24 +45,26 @@ public class SessionController {
      * Gets the user sessions.
      *
      * @param username the username
+     * @param skipNameResolve the skip name resolve
      * @return the user sessions
      * @throws ServiceException the service exception
      */
-    public SessionEntities getUserSessions(String username) throws ServiceException {
+    public SessionEntities getUserSessions(String username, boolean skipNameResolve) throws ServiceException {
         Collection<ClientSession> clientSessions = SessionManager.getInstance().getSessions(username);
-        SessionEntities sessionEntities = convertToSessionEntities(clientSessions);
+        SessionEntities sessionEntities = convertToSessionEntities(clientSessions, skipNameResolve);
         return sessionEntities;
     }
     
     /**
      * Gets the all sessions.
      *
+     * @param skipNameResolve the skip name resolve
      * @return the all sessions
      * @throws ServiceException the service exception
      */
-    public SessionEntities getAllSessions() throws ServiceException {
+    public SessionEntities getAllSessions(boolean skipNameResolve) throws ServiceException {
         Collection<ClientSession> clientSessions = SessionManager.getInstance().getSessions();
-        SessionEntities sessionEntities = convertToSessionEntities(clientSessions);
+        SessionEntities sessionEntities = convertToSessionEntities(clientSessions, skipNameResolve);
         return sessionEntities;
     }
     
@@ -83,10 +86,11 @@ public class SessionController {
      * Convert to session entities.
      *
      * @param clientSessions the client sessions
+     * @param skipNameResolve the skip name resolve
      * @return the session entities
      * @throws ServiceException the service exception
      */
-    private SessionEntities convertToSessionEntities(Collection<ClientSession> clientSessions) throws ServiceException {
+    private SessionEntities convertToSessionEntities(Collection<ClientSession> clientSessions, boolean skipNameResolve) throws ServiceException {
         List<SessionEntity> sessions = new ArrayList<SessionEntity>();
         SessionEntities sessionEntities = new SessionEntities(sessions);
 
@@ -146,7 +150,12 @@ public class SessionController {
             }
             
             try {
-                session.setHostAddress(clientSession.getHostAddress());
+                if (skipNameResolve) {
+                    LOG.debug("Skipping name resolution for hostname: {}", clientSession.getHostName());
+                    session.setHostAddress(clientSession.getHostName());
+                }else {
+                    session.setHostAddress(clientSession.getHostAddress());
+                }
                 session.setHostName(clientSession.getHostName());
             } catch (UnknownHostException e) {
                 LOG.error("UnknownHostException", e);

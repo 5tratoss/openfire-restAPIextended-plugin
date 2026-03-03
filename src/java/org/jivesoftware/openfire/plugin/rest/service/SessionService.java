@@ -1,11 +1,7 @@
 package org.jivesoftware.openfire.plugin.rest.service;
 
 import javax.annotation.PostConstruct;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -25,15 +21,20 @@ public class SessionService {
 
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public SessionEntities getAllSessions() throws ServiceException {
-        return sessionController.getAllSessions();
+    public SessionEntities getAllSessions(
+        @QueryParam("skipNameResolve") @DefaultValue("false") boolean skipNameResolve
+    ) throws ServiceException {
+        return sessionController.getAllSessions(skipNameResolve);
     }
     
     @GET
     @Path("/{username}")
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public SessionEntities getUserSessions(@PathParam("username") String username) throws ServiceException {
-        return sessionController.getUserSessions(username);
+    public SessionEntities getUserSessions(
+        @PathParam("username") String username,
+        @QueryParam("skipNameResolve") @DefaultValue("false") boolean skipNameResolve
+    ) throws ServiceException {
+        return sessionController.getUserSessions(username, skipNameResolve);
     }
     
     @DELETE
