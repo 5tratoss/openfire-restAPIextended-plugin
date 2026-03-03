@@ -16,6 +16,7 @@
         <ul>
             <li><a href="#rest-api-plugin-readme">REST API Plugin Readme</a>
                 <ul>
+                    <li><a href="#notice">Notice</a></li>
                     <li><a href="#feature-list">Feature list</a></li>
                     <li><a href="#available-rest-api-clients">Available REST API clients</a></li>
                     <li><a href="#installation">Installation</a></li>
@@ -123,9 +124,19 @@
     <div class="stackedit__html">
         <h1 id="rest-api-plugin-readme">REST API Plugin Readme</h1>
         <p>The REST API Plugin provides the ability to manage Openfire by sending an REST/HTTP request to the server. This plugin’s functionality is useful for applications that need to administer Openfire outside of the Openfire admin console.</p>
+        <h2 id="notice">Notice</h2>
+        <p>This plugin is not an official Openfire plugin.<br>
+            It’s a fork of the official Openfire REST API Plugin and can’t be installed together with the official Openfire REST API Plugin.<br>
+            All credits for the original plugin go to the original author.<br>
+            The original plugin can be found here:<br>
+            <a href="https://github.com/igniterealtime/openfire-restAPI-plugin">https://github.com/igniterealtime/openfire-restAPI-plugin</a><br>
+            The Client Libraries only have the capability to send requests based on the Offical Openfire REST API Plugin<br>
+            and not the extended functionality of this plugin.</p>
         <h2 id="feature-list">Feature list</h2>
         <ul>
             <li>Get overview over all or specific user and to create, update or delete a user</li>
+            <li>Get overview over all or specific PubSub/PEP nodes for a user and their published items</li>
+            <li>Support for OMEMO device list payload parsing in PubSub items</li>
             <li>Get overview over all or specific group and to create, update or delete a group</li>
             <li>Get overview over all user roster entries and to add, update or delete a roster entry</li>
             <li>Add user to a group and remove a user from a group</li>
