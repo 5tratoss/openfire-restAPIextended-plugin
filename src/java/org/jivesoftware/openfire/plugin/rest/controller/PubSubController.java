@@ -23,11 +23,22 @@ public class PubSubController {
     /** The Constant INSTANCE. */
     public static final PubSubController INSTANCE = new PubSubController();
 
-    //private static final  PEPServiceManager pepServiceManager = new PEPServiceManager();
-    //private static final XMPPServer xmppServer = XMPPServer.getInstance();
+    /** The pep service manager. */
+    private PEPServiceManager pepServiceManager;
+
+    /** The xmpp server. */
+    private XMPPServer xmppServer;
 
     /** The log. */
-    private static Logger LOG = LoggerFactory.getLogger(PubSubController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PubSubController.class);
+
+    /**
+     * Instantiates a new pub sub controller.
+     */
+    private PubSubController() {
+        xmppServer = XMPPServer.getInstance();
+        pepServiceManager = new PEPServiceManager();
+    }
 
     /**
      * Gets the single instance of PubSubController.
@@ -61,7 +72,6 @@ public class PubSubController {
                 owner = new JID(ownerString).asBareJID();
                 LOG.debug("Found bare JID for user {}", owner);
             } else {
-                XMPPServer xmppServer = XMPPServer.getInstance();
                 owner = xmppServer.createJID(ownerString, null);
                 LOG.debug("Found full JID for user {}", owner);
             }
@@ -70,16 +80,20 @@ public class PubSubController {
             throw new ServiceException("Invalid username or JID", "", ExceptionType.USER_NOT_FOUND_EXCEPTION, Response.Status.BAD_REQUEST, e);
         }
 
-        PEPServiceManager manager = new PEPServiceManager();
+        // Double-check if pepService is null or throw Null Exception
+        // Needs Time at Object creation 
+        // if PEP Service of "owner" wasn't asked once after restart of openfire
+        // if removed may throw a 500 Server Failure at the 1st query of user
+        //  START --->
         PEPService pepService = null;
         try{
-            pepService = manager.getPEPService(owner);
+            pepService = pepServiceManager.getPEPService(owner);
         }catch (NullPointerException e){
             LOG.info("Could not get PEP-Service for User {}; Will try again", owner.toBareJID());
         }
         try{
             if (pepService == null) {
-                pepService = manager.getPEPService(owner);
+                pepService = pepServiceManager.getPEPService(owner);
             }
         }catch (NullPointerException e1){
             LOG.warn("Failed to get PEP-Service for User {}", owner.toBareJID());
@@ -89,7 +103,7 @@ public class PubSubController {
             LOG.info("No PEP service found for user {}", owner.toBareJID());
             throw new ServiceException("No PEP service found for user", "", ExceptionType.USER_NOT_FOUND_EXCEPTION, Response.Status.NOT_FOUND, null);
         }
-
+        // <--- END
 
         PubSubServiceInfo pubSubServiceInfo = new PEPServiceInfo( owner );
         List<Node> nodes = pubSubServiceInfo.getLeafNodes();
@@ -130,7 +144,7 @@ public class PubSubController {
                     );
                 }
             } catch (Exception e) {
-                LOG.error("Error map published items for node: " + node.getName(), e);
+                LOG.error("Error map published items for node: {}", node.getName(), e);
                 throw new ServiceException("Error mapping published items for node","", ExceptionType.PROPERTY_NOT_FOUND, Response.Status.INTERNAL_SERVER_ERROR, e);
             }
             try{
@@ -146,7 +160,7 @@ public class PubSubController {
                 );
                 nodeList.add(nodeItem);
             }catch (Exception e){
-                LOG.error("Error map single node: " + node.getName(), e);
+                LOG.error("Error map single node: {}", node.getName(), e);
                 throw new ServiceException("Error mapping node","", ExceptionType.PROPERTY_NOT_FOUND, Response.Status.INTERNAL_SERVER_ERROR, e);
             }
         }
