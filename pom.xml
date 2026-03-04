@@ -8,7 +8,7 @@
     </parent>
     <groupId>org.igniterealtime.openfire.plugins</groupId>
     <artifactId>restAPI</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <name>REST API extended Plugin</name>
     <description>Allows extended administration over a RESTful API.</description>
 
