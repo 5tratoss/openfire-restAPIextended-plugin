@@ -1,6 +1,7 @@
 package org.jivesoftware.openfire.plugin.rest.controller;
 
 import org.jivesoftware.openfire.XMPPServer;
+import org.jivesoftware.openfire.pep.PEPService;
 import org.jivesoftware.openfire.pep.PEPServiceInfo;
 import org.jivesoftware.openfire.pep.PEPServiceManager;
 import org.jivesoftware.openfire.plugin.rest.entity.pubsub.PubSubNodeEntities;
@@ -68,22 +69,29 @@ public class PubSubController {
             LOG.warn("Invalid username/JID provided: {}", ownerString);
             throw new ServiceException("Invalid username or JID", "", ExceptionType.USER_NOT_FOUND_EXCEPTION, Response.Status.BAD_REQUEST, e);
         }
-        if (new PEPServiceManager().getPEPService(owner.toBareJID()) == null) {
+
+        PEPServiceManager manager = new PEPServiceManager();
+        PEPService pepService = null;
+        try{
+            pepService = manager.getPEPService(owner);
+        }catch (NullPointerException e){
+            LOG.info("Could not get PEP-Service for User {}; Will try again", owner.toBareJID());
+        }
+        try{
+            if (pepService == null) {
+                pepService = manager.getPEPService(owner);
+            }
+        }catch (NullPointerException e1){
+            LOG.warn("Failed to get PEP-Service for User {}", owner.toBareJID());
+            throw new ServiceException("Failed to get PEP-Service for User ", "", ExceptionType.PROPERTY_NOT_FOUND, Response.Status.ACCEPTED, null);
+        }
+        if ( pepService == null) {
             LOG.info("No PEP service found for user {}", owner.toBareJID());
             throw new ServiceException("No PEP service found for user", "", ExceptionType.USER_NOT_FOUND_EXCEPTION, Response.Status.NOT_FOUND, null);
         }
-        PubSubServiceInfo pubSubServiceInfo = new PEPServiceInfo( owner );
-        // Double "null" check because of absense of PEPServiceInfo
-        if (pubSubServiceInfo == null) {
-            LOG.info("No PubSub service info found 1st for user {}", owner);
-            pubSubServiceInfo = new PEPServiceInfo(owner);
-            // Double Check see above
-            if (pubSubServiceInfo == null){
-                LOG.warn("No PubSub service info found for user {}", owner);
-                throw new ServiceException("No PubSub service info found for user", "", ExceptionType.USER_NOT_FOUND_EXCEPTION, Response.Status.NOT_FOUND, null);
-            }
-        }
 
+
+        PubSubServiceInfo pubSubServiceInfo = new PEPServiceInfo( owner );
         List<Node> nodes = pubSubServiceInfo.getLeafNodes();
         if (nodes == null) {
             LOG.info("No leaf nodes found for user {}", owner);
